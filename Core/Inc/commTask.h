@@ -1,0 +1,36 @@
+/*
+ * commTask.h
+ *
+ *  Created on: Oct 9, 2025
+ *      Author: Joe
+ */
+
+#ifndef COMMTASK_H_
+#define COMMTASK_H_
+
+////////////////////////////////////////////////////////////////////////
+// INCLUDE
+////////////////////////////////////////////////////////////////////////
+
+#include "mujoe_cmsis.h"
+#include "mujoe_bsp.h"
+#include "mujoe_types.h"
+#include "mujoe_usart.h"
+#include "mujoe_ser_comm.h"
+#include "mujoe_ser_comm_drsstc.h"
+#include "comTask_types.h"
+
+////////////////////////////////////////////////////////////////////////
+// TYPES
+////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////
+// API
+////////////////////////////////////////////////////////////////////////
+
+extern mujoe_err_t commTsk_initTask( void );
+extern mujoe_err_t comTask_submitCommandResponse( mujoe_sc_cmd_rsp_t *pCmdRsp );
+extern mujoe_err_t comTask_submitResDriveFlags( uint32_t flags );
+extern mujoe_err_t comTask_start_resPerCapDump( void );
+
+#endif /* COMMTASK_H_ */
