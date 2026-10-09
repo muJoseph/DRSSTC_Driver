@@ -115,7 +115,10 @@ void mujoe_dac_write(DAC_CTX ctx, mujoe_dac_ch_t ch, uint32_t value )
 {
 	// Clamp input
 	if (value > DIGITAL_SCALE_12BITS)
+	{
 		value = DIGITAL_SCALE_12BITS;
+	}
+
 
 	/* Set the data to be loaded in the data holding register */
 	LL_DAC_ConvertData12RightAligned(ctx->instance, ch, value);

@@ -178,59 +178,15 @@ void mujoe_resdrv_init_configStruct( presetId_t id, resdrv_cfg_t *pCfg )
 
 	switch( id )
 	{
-		case RESDRV_PRESET_ID_DEMO:
-			pCfg->CTBurdenResistor_currFb = 3.9f;
-			pCfg->CTRatio_currFb 		 = 676.0f;
-			pCfg->OCDLimit_A			 = 100.0f;
-			pCfg->startFreq_Hz			 = 180e3;
-			pCfg->leadTime_ns			 = 350;
-			pCfg->zcdFeedback_timeout_us  = 20.0f;
-			pCfg->enableDMACallbacks = false;
-			pCfg->enableBurstReload = true;
-			pCfg->enablePulseSkipping = true;
-			break;
-		case RESDRV_PRESET_ID_CURR_FB_DBG:
-			pCfg->CTBurdenResistor_currFb = 1.0f;
-			pCfg->CTRatio_currFb 		 = 100.0f;
-			pCfg->OCDLimit_A			 = 100.0f;	// legacy
-			//pCfg->OCDLimit_A			 = 200.0f;	// test
-			pCfg->startFreq_Hz			 = 264e3;
-			pCfg->leadTime_ns			 = 0;
-			//pCfg->zcdFeedback_timeout_us  = 20.0f;	// legacy
-			pCfg->zcdFeedback_timeout_us  = 380.0f;		// 400 ms
-			// NOTE: Callback en/dis has no affect as of now since
-			// it is over-written by ENABLE_DMA_CALLBACKS in mujoe_settings.h
-			pCfg->enableDMACallbacks = false;	// legacy
-			//pCfg->enableDMACallbacks = true;	// test
-			pCfg->enableBurstReload = true;
-			pCfg->numBurstCycles = 1;	// legacy
-			//pCfg->numBurstCycles = 500;	// test
-			//pCfg->numBurstCycles = 0;		// Infinite cycles
-			pCfg->enablePulseSkipping = true;
-			break;
-		case RESDRV_PRESET_ID_CURR_FB_DBG_FAB_CT:
-			pCfg->CTBurdenResistor_currFb = 10.0f;
+		case RESDRV_PRESET_ID_HIGH_PRI_CURR_STRESS_TEST:
+			pCfg->CTBurdenResistor_currFb = 3.3f;
 			pCfg->CTRatio_currFb 		 = 1024.0f;
-			pCfg->OCDLimit_A			 = 100.0f;	// legacy
-			pCfg->startFreq_Hz			 = 264e3;
-			pCfg->leadTime_ns			 = 0;
-			pCfg->zcdFeedback_timeout_us  = 380.0f;		// 380 usec
-			// NOTE: Callback en/dis has no affect as of now since
-			// it is over-written by ENABLE_DMA_CALLBACKS in mujoe_settings.h
-			pCfg->enableDMACallbacks = false;
-			pCfg->enableBurstReload = true;
-			pCfg->numBurstCycles = 1;
-			pCfg->enablePulseSkipping = true;
-			break;
-		case RESDRV_PRESET_ID_CURR_FB_DBG_FAB_CT_NEW:
-			pCfg->CTBurdenResistor_currFb = 10.0f;
-			pCfg->CTRatio_currFb 		 = 1024.0f;
-			pCfg->OCDLimit_A			 = 100.0f;	// legacy
+			pCfg->OCDLimit_A			 = 300.0f;
 			pCfg->startFreq_Hz			 = 264e3;
 			pCfg->startFreq_maxNegDev_percent = 25.0f;
 			pCfg->startFreq_maxPosDev_percent = 5.0f;
 			pCfg->leadTime_ns			 = 0;
-			pCfg->zcdFeedback_timeout_us  = 380.0f;		// 380 usec
+			pCfg->zcdFeedback_timeout_us  = 380.0f;
 			// NOTE: Callback en/dis has no affect as of now since
 			// it is over-written by ENABLE_DMA_CALLBACKS in mujoe_settings.h
 			pCfg->enableDMACallbacks = false;
@@ -239,28 +195,23 @@ void mujoe_resdrv_init_configStruct( presetId_t id, resdrv_cfg_t *pCfg )
 			pCfg->enablePulseSkipping = true;
 			pCfg->resPeriodCapBuffLen = MUJOE_RES_PER_CAP_BUF_LEN;
 			break;
-		case RESDRV_PRESET_ID_DEMO_NO_LEAD:
-			pCfg->CTBurdenResistor_currFb = 3.9f;
-			pCfg->CTRatio_currFb 		 = 676.0f;
-			pCfg->OCDLimit_A			 = 100.0f;
-			pCfg->startFreq_Hz			 = 180e3;
-			pCfg->leadTime_ns			 = 0;
-			pCfg->zcdFeedback_timeout_us  = 20.0f;
-			pCfg->enableDMACallbacks = false;
-			pCfg->enableBurstReload = true;
-			pCfg->enablePulseSkipping = true;
-			break;
 		case RESDRV_PRESET_ID_DEFAULT:
 		default:
-			pCfg->CTBurdenResistor_currFb = 3.9f;
-			pCfg->CTRatio_currFb 		 = 676.0f;	// 676/1
+			pCfg->CTBurdenResistor_currFb = 10.0f;
+			pCfg->CTRatio_currFb 		 = 1024.0f;
 			pCfg->OCDLimit_A			 = 100.0f;
-			pCfg->startFreq_Hz			 = 180e3;
-			pCfg->leadTime_ns			 = 350;
-			pCfg->zcdFeedback_timeout_us  = 20.0f;
+			pCfg->startFreq_Hz			 = 264e3;
+			pCfg->startFreq_maxNegDev_percent = 25.0f;
+			pCfg->startFreq_maxPosDev_percent = 5.0f;
+			pCfg->leadTime_ns			 = 0;
+			pCfg->zcdFeedback_timeout_us  = 380.0f;
+			// NOTE: Callback en/dis has no affect as of now since
+			// it is over-written by ENABLE_DMA_CALLBACKS in mujoe_settings.h
 			pCfg->enableDMACallbacks = false;
 			pCfg->enableBurstReload = true;
+			pCfg->numBurstCycles = 1;
 			pCfg->enablePulseSkipping = true;
+			pCfg->resPeriodCapBuffLen = MUJOE_RES_PER_CAP_BUF_LEN;
 			break;
 	}
 }// mujoe_resdrv_init_configStruct
