@@ -24,37 +24,36 @@
 // Resonant Drive Task
 #define RESDRIVE_TASK_PRIORITY			osPriorityAboveNormal
 #define RESDRIVE_TASK_STACK_SIZE		256*4	// words (e.g. 128 words = 1024 bytes)
-#define RESDRIVE_TASK_QUEUE_MAX_MSGS	8
+#define RESDRIVE_TASK_QUEUE_MAX_MSGS	8		// Max number of queue msgs in FIFO
 
 // Comm Task
 #define COMM_TASK_PRIORITY				osPriorityNormal
 #define COMM_TASK_STACK_SIZE			256*4	// words (e.g. 128 words = 1024 bytes)
-#define COMM_TASK_QUEUE_MAX_MSGS		8
+#define COMM_TASK_QUEUE_MAX_MSGS		8		// Max number of queue msgs in FIFO
 
 
-#define MAX_TASK_QUEUE_MSG_LEN			64
+#define MAX_TASK_QUEUE_MSG_LEN			64	// Max length of each task queue message
 
 ////////////////////////////////////////////////////////////////////////
 // Resonant Driver Settings
 ////////////////////////////////////////////////////////////////////////
 
-
-// If true, host-specified starting frequency for burst generation
+// If true, host-specified starting/open-loop frequency for burst generation
 // is reloaded on every PRF cycle.
-#define ENABLE_BURST_RELOAD			true
+#define ENABLE_BURST_RELOAD				true
 
-#define ENABLE_DMA_CALLBACKS		true  // NOTE: Must be true for finite cycles to work
-#define ENABLE_TF2_PIN_OUTPUT		true
-#define ENABLE_PULSE_SKIPPING		true
+#define ENABLE_DMA_CALLBACKS			true  // NOTE: Must be true for finite cycles to work
+#define ENABLE_TF2_PIN_OUTPUT			true
+#define ENABLE_PULSE_SKIPPING			true
 
 
 // The amount of time BEFORE the PRF burst completes (in usec)
 // that the DMA2 CH6 dma request will be generated for reloading the starting frequency
 // into TIM2.ARR (if ENABLE_BURST_RELOAD = true)
-#define BURST_DMARQ_LEADTIME_US		100	// works with finite PRF cycle code
+#define BURST_DMARQ_LEADTIME_US			100
 
 
-#define RES_DRIVER_PRESET			RESDRV_PRESET_ID_HIGH_PRI_CURR_STRESS_TEST
+#define RES_DRIVER_PRESET				RESDRV_PRESET_ID_HIGH_PRI_CURR_STRESS_TEST
 
 
 
@@ -73,20 +72,19 @@
 #define OCD_LIMIT_MIN_A					50.0f			// Min OCD limit (A)
 #define OCD_LIMIT_MAX_A					800.0f			// Max OCD limit (A)
 
-#define BURST_SEQUENCE_MAX_DURATION_MS			5000	// 5 sec
+#define BURST_SEQUENCE_MAX_DURATION_MS	5000			// 5 sec
 
-#define PRF_MAX_DUTY_CYCLE			0.08f			// Max PRF duty cycle (8%)
-
-
-#define HBRIDGE_LEAD_TIME_NS		(uint32_t)0			// Default lead time on POR
-
-// Start burst frequency excitation
-// TODO: Make this so that it can be upated during run-time via UART command
-// Therefore API needs to be built around this var to update all respective registers
-#define START_FREQ_HZ				264e3
+#define PRF_MAX_DUTY_CYCLE				0.08f			// Max PRF duty cycle (8%)
 
 
-#define MUJOE_RES_PER_CAP_BUF_LEN						4700
+#define HBRIDGE_LEAD_TIME_NS			(uint32_t)0		// Default lead time on POR
+
+
+#define START_FREQ_HZ					264e3			// Start burst frequency excitation (Hz)
+
+
+#define MUJOE_RES_PER_CAP_BUF_LEN		4700			// Buffer length for resonant period capture (number of uint32_t)
+
 ////////////////////////////////////////////////////////////////////////
 // MUJOE Serial Comm
 ////////////////////////////////////////////////////////////////////////
@@ -107,7 +105,7 @@
 
 #define MUJOE_SC_MAX_CMD_ARG_LEN						40
 #define MUJOE_SC_MAX_CMD_RSP_PARAM_LEN					40
-#define MUJOE_SC_MAX_SOL_DATA_CHUNK_LEN					40		// TODO: Make this larger after debug
+#define MUJOE_SC_MAX_SOL_DATA_CHUNK_LEN					40
 
 // Delay before resonant period capture buffer is dumped to UART once command is rxd
 #define MUJOE_SC_RES_PER_CAP_BUF_DMP_DELAY_MS			0
@@ -116,7 +114,7 @@
 // USART1
 ////////////////////////////////////////////////////////////////////////
 
-// TODO: Make these dependent on TX and RX frame lengths
+// TODO: Make these dependent on TX and RX mujoe_ser_comm frame lengths
 #define USART1_TX_BUFF_LEN								100
 #define USART1_RX_BUFF_LEN								100
 
@@ -130,6 +128,7 @@
 // ADC2
 ////////////////////////////////////////////////////////////////////////
 
+// Currently not utilized
 #define ADC2_DMA										DMA1
 #define ADC2_DMA_CH										LL_DMA_CHANNEL_1
 
