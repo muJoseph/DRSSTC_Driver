@@ -23,7 +23,6 @@
 
 #include "mujoe_settings.h"
 
-
 ////////////////////////////////////////////////////////////////////////
 // CONSTANTS
 ////////////////////////////////////////////////////////////////////////
@@ -37,32 +36,19 @@
 #define ZCD2_REF_DAC_ID			DAC1_ID
 #define ZCD2_REF_DAC_CH_ID		MUJOE_DAC_CH2
 
-
 #define MSTR_PER_REF_TIM_ID		TIM2_ID
 #define BURST_GEN_TIM_ID		TIM5_ID
 
-#define OCD_COMP_ID				COMP3_ID
 #define ZCD_COMP_ID				COMP1_ID
-
-
-#define MAX_BURST_FREQ_HZ		1.25e3
-#define MIN_BURST_PERIOD_US		(1.0f/MAX_BURST_FREQ_HZ)*1e6
-
-#define MAX_BURST_ON_TIME_US	100.0f
+#define OCD_COMP_ID				COMP3_ID
 
 #define TIM2_CLK_FREQ_HZ		170e6
-#define TIM5_CLK_FREQ_HZ		170e6
 
 #define HRTIM_TIMx_CLK_FREQ_HZ	170e6
 
+#define ZCD_THRESH_VOLTAGE_V	1.65f 	// V
+#define MCU_SUPPLY_VOLTAGE		3.3f	// V
 
-#ifndef BURST_DMARQ_LEADTIME_US
-#define BURST_DMARQ_LEADTIME_US 			10
-#endif // #ifndef BURST_DMARQ_LEADTIME_US
-
-#define ZCD_THRESH_VOLTAGE_V		1.65f // TEST
-
-#define MCU_SUPPLY_VOLTAGE			3.3f	// volts
 ////////////////////////////////////////////////////////////////////////
 // LOCAL PROTOS
 ////////////////////////////////////////////////////////////////////////
@@ -106,7 +92,6 @@ static const dma_callbacks_t dma2Cbs =
 
 static const uint32_t OENR_ENABLE_BRIDGE_DRV_OUT = HRTIM_OENR_TB1OEN | HRTIM_OENR_TB2OEN | HRTIM_OENR_TC1OEN | HRTIM_OENR_TC2OEN;
 
-
 // Pulse Skipping
 
 // Refer to Figure 286 (pg.986) of reference manual for order of register write(s)
@@ -133,7 +118,6 @@ static const uint32_t output_set[PULSE_SKIP_OUT_SET_LEN] =
 
 // Refer to Figure 286 (pg.986) of reference manual for order of register write(s)
 // during a Burst DMA transaction
-
 #define PULSE_SKIP_OUT_RESET_LEN		8
 
 // Output configurations in the event of OCD
@@ -153,10 +137,7 @@ static const uint32_t output_reset[PULSE_SKIP_OUT_RESET_LEN] =
 		0x00000000										// HRTIM_SETC2R: TIM C Output 2 Set Register
 };
 
-
-// TODO: Implement this better
 static RESDRV_CTX _ctx = NULL;	// Ptr to res driver context to be used locally
-
 
 ////////////////////////////////////////////////////////////////////////
 // MACROS
@@ -251,7 +232,7 @@ mujoe_err_t mujoe_resdrv_init_context( RESDRV_CTX ctx,
 		dac_cfg_t cfg =
 		{
 				.ch1En = true,
-				.ch2En = true,//false,
+				.ch2En = true,
 		};
 		err |= mujoe_dac_init_context( &ctx->dacs[DAC1_ID], DAC1, &cfg );
 		err |= mujoe_dac_init_context( &ctx->dacs[DAC3_ID], DAC3, &cfg );
@@ -312,7 +293,6 @@ mujoe_err_t mujoe_resdrv_init_context( RESDRV_CTX ctx,
 				.enable = true,
 				.instance = ADC2_DMA,
 				.pSampleBuffer = &ctx->rt.cs_adc_sample,
-				//.enDmaInt = true,	// TODO: set false after debug
 				.enDmaInt = false,
 			},
 		};
@@ -454,7 +434,7 @@ mujoe_err_t mujoe_resdrv_arm( RESDRV_CTX ctx )
 	{
 		// Enable internal HRTIM timers
 		// NOTE: This DOES NOT cause the timers to start counting since they are single-shot
-		// ret-riggerable. Timers must be reset to start counting.
+		// re-triggerable. Timers must be reset to start counting.
 		err |= mujoe_hrtim_enable_all_timers( &ctx->hrtim );
 	}
 
@@ -536,19 +516,16 @@ mujoe_err_t mujoe_resdrv_stop_burst( RESDRV_CTX ctx )
 	err |= mujoe_comp_deactivate(&ctx->comps[COMP2_ID]);
 	err |= mujoe_comp_deactivate(&ctx->comps[COMP3_ID]);
 
-	// TODO: Note that reference has COMP4 deactivation commented out.
-	// yet we disable it. Consider commenting this out so comparator 4 is not disabled
-	// NOTE: Testing seems to show that this is not neccessary to disable comp 4, therefore
-	// consider leaving it commented out
-	err |= mujoe_comp_deactivate(&ctx->comps[COMP4_ID]);	// LEGACY
+	err |= mujoe_comp_deactivate(&ctx->comps[COMP4_ID]);
 
 	// Set cnt above CC3 value to force the output to low level
 	mujoe_gptim_setCounter( &ctx->gptims[TIM5_ID], ctx->rt.prf_ontime_us + 1 );
 	// Stop TIM5
 	err |= mujoe_gptim_stop(&ctx->gptims[TIM5_ID]);
 
-
+	// Clear TIM2 counter
 	mujoe_gptim_setCounter( &ctx->gptims[TIM2_ID], 0 );
+
 	// Stop TIM2
 	err |= mujoe_gptim_stop(&ctx->gptims[TIM2_ID]);
 
@@ -559,20 +536,6 @@ mujoe_err_t mujoe_resdrv_stop_burst( RESDRV_CTX ctx )
 
 	return err;
 }// mujoe_resdrv_stop_burst
-
-
-
-// The STM32 LL naming is misleading here. In stm32g4xx_ll_tim.h, LL_TIM_TRGO_RESET is defined as the MMS = "Reset" master mode.
-//So TRGO_RESET does not mean “emit TRGO every time the counter wraps / resets.” It means TRGO is driven from the UG path of EGR (software update generation), not from the free-running update event that repeats every period.
-//
-//In practice that usually implies:
-//
-//You do not get a steady train of TIM2 → TRGO pulses at 1/start_period just from the counter running.
-//mujoe_gptim_generate_update_event() at init or at burst start may create one (or a few) TRGO-related edges, but not the periodic edges HRTIM EEV2 needs to keep TIMB/TIMC resetting in open loop.
-//With non-zero lead time, the code uses LL_TIM_TRGO_CC1IF: TRGO is tied to CC1 compare / CC1 interrupt flag behavior, so each period (for your down-counter + compare placement) you get repeating TRGO activity that the HRTIM can treat as EEV2 edges. That matches what you see on the bench: half bridges move before ZCD.
-//
-//So the leading explanation is: wrong MMS choice for “zero lead time” — the intent was probably “no lead = TRGO aligned with period / update,” but LL_TIM_TRGO_RESET is the wrong symbol for that. The natural fix in firmware (when you implement it) is to use something that tracks the repeating timebase, e.g. LL_TIM_TRGO_UPDATE (one TRGO per update/reload) or keep LL_TIM_TRGO_CC1IF with a non-zero CCR1 that encodes “0 ns lead” as one timer tick (or another well-defined small compare), instead of LL_TIM_TRGO_RESET.
-//
 
 mujoe_err_t mujoe_resdrv_set_lead_time(RESDRV_CTX ctx, uint32_t leadTime_ns)
 {
@@ -841,15 +804,12 @@ mujoe_err_t mujoe_resdrv_start_burst( RESDRV_CTX ctx, mujoe_resdrv_start_burst_a
 	if( err == MUJOE_ERR_NONE )
 	{
 
-		// BEGIN TEST
 		// Propagates the new starting frequency to the rest
 		// of the res driver sub modules
 		err |= propagate_start_frequency(ctx,
 										pArg->startFreq_Hz,
 										pArg->startFreq_maxPosDev_percnt,
 										pArg->startFreq_maxNegDev_percnt);
-		// END TEST
-
 
 		// If finite PRF cycles specified, clear counter in prep for start
 		ctx->cfg.numBurstCycles = pArg->numBurstCycles;
@@ -888,8 +848,8 @@ mujoe_err_t mujoe_resdrv_start_burst( RESDRV_CTX ctx, mujoe_resdrv_start_burst_a
 			tim5_cmp2 = ctx->rt.prf_period_us-BURST_DMARQ_LEADTIME_US;
 		}
 
-		// Clamp prf on-time to min if neccessary, save to local context
-		if( pArg->ontime_us < PRF_ON_TIME_MIN_USEC )	// FYI min was 2 usec in legacy code
+		// Clamp PRF on-time to min if neccessary, save to local context
+		if( pArg->ontime_us < PRF_ON_TIME_MIN_USEC )
 		{
 			ctx->rt.prf_ontime_us = PRF_ON_TIME_MIN_USEC;
 		}
@@ -906,12 +866,12 @@ mujoe_err_t mujoe_resdrv_start_burst( RESDRV_CTX ctx, mujoe_resdrv_start_burst_a
 		// ...BEFORE each burst completes from burst generator timer (TIM5)
 		err |= mujoe_gptim_set_compareX_value( GPTIM5,
 											   2,
-											   tim5_cmp2 ); // test
+											   tim5_cmp2 );
 		// Set TIM5_CCR3
 		// Used for On-time of burst
 		err |= mujoe_gptim_set_compareX_value( GPTIM5,
 											   3,
-											   ctx->rt.prf_ontime_us );	// test
+											   ctx->rt.prf_ontime_us );
 
 #if RES_DRV_DBG_EN == 1
 		// Set TIM5_CCR1
@@ -919,14 +879,14 @@ mujoe_err_t mujoe_resdrv_start_burst( RESDRV_CTX ctx, mujoe_resdrv_start_burst_a
 		// NOTE: This replicates CCR3 but on a GPIO that is more accessible on the NUCLEO board
 		err |= mujoe_gptim_set_compareX_value( GPTIM5,
 											   1,
-											   ctx->rt.prf_ontime_us );	// test
+											   ctx->rt.prf_ontime_us );
 #endif// #if RES_DRV_DBG_EN == 1
 
 		// Set TIM5_CCR4
 		// TODO: Currently unused, consider removing
 		err |= mujoe_gptim_set_compareX_value( GPTIM5,
 											   4,
-											   tim5_cmp2 );	// test
+											   tim5_cmp2 );
 
 		// Set TIM5.PSC
 		err |= mujoe_gptim_set_prescaler(GPTIM5, 169 );
@@ -943,15 +903,13 @@ mujoe_err_t mujoe_resdrv_start_burst( RESDRV_CTX ctx, mujoe_resdrv_start_burst_a
 		// Force update of TIM5
 		mujoe_gptim_generate_update_event(GPTIM5);
 
-		// Configure and start TIM2
-
 #if RES_DRV_DBG_EN != 1
 		// Disable all outputs of TIM2
 		err |= mujoe_gptim_controlAllOutputs( MST_TMR_GPTIM, false);
 #endif // #if RES_DRV_DBG_EN != 1
 
 		// Re-configure all HRTIM associated DMA channels to ensure clean start
-		err |= config_dma(ctx);	// TEST
+		err |= config_dma(ctx);
 
 		// Enable TIM2 CH1
 		err |=  mujoe_gptim_channel_control( GPTIM2, LL_TIM_CHANNEL_CH1, true);
@@ -959,7 +917,7 @@ mujoe_err_t mujoe_resdrv_start_burst( RESDRV_CTX ctx, mujoe_resdrv_start_burst_a
 		// Force update of TIM2
 		mujoe_gptim_generate_update_event(GPTIM2);
 
-		// TEST: TIM D start included
+		// Reset all HRTIM timers
 		mujoe_hrtim_TIMx_counter_reset(&ctx->hrtim, LL_HRTIM_TIMER_A |
 													LL_HRTIM_TIMER_B |
 													LL_HRTIM_TIMER_C |
@@ -993,8 +951,9 @@ static mujoe_err_t set_zcdFeedback_timeout( RESDRV_CTX ctx, float timeout_usec)
 	float T_start_usec = 1e6 * (1.0f/ctx->cfg.startFreq_Hz);
 	// Subtract 1 period/cycle from requested timeout to allow finishing
 	// current cycle and account for irq entry delay
-	float timeout_adj_usec = timeout_usec - T_start_usec;	// TODO: Figure out if this should be add delay
-	//float timeout_adj_usec = timeout_usec + T_start_usec;
+	float timeout_adj_usec = timeout_usec - T_start_usec;
+	//float timeout_adj_usec = timeout_usec + T_start_usec;	// TODO: Evaluate if adding period has any affect on performance
+
 	// Get the tick frequency of HRTIM TIM F
 	float timf_freq_hz = mujoe_hrtim_get_tim_freq( &ctx->hrtim, LL_HRTIM_TIMER_F );
 
@@ -1023,50 +982,6 @@ static mujoe_err_t set_zcdFeedback_timeout( RESDRV_CTX ctx, float timeout_usec)
 
 }//set_zcdFeedback_timeout
 
-// TODO: Obsolete, consider removing
-static mujoe_err_t init_timx( RESDRV_CTX ctx, GPTIM_CTX GPTIM, timx_cfg_t *pCfg )
-{
-	mujoe_err_t err = MUJOE_ERR_NONE;
-	TIM_TypeDef *TIM = GPTIM->instance;
-
-	// Ensure timer is stopped in prep for cfg
-	if( (err = mujoe_gptim_stop(GPTIM)) != MUJOE_ERR_NONE )
-	{
-		return err;
-	}
-
-
-	// Set prescaler (PSC)
-	err |= mujoe_gptim_set_prescaler( GPTIM, pCfg->PSC );
-	//LL_TIM_SetPrescaler(TIM,pCfg->PSC);
-
-	// Set auto-reload (ARR)
-	err |= mujoe_gptim_set_ARR( GPTIM, pCfg->ARR );
-	//LL_TIM_SetAutoReload(TIM, pCfg->ARR);
-
-	// Config counter mode
-	LL_TIM_SetCounterMode(TIM, pCfg->counterMode);
-	err |= LL_TIM_GetCounterMode(TIM) == pCfg->counterMode ?  MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
-
-	// Cfg slave mode
-	LL_TIM_SetSlaveMode(TIM, pCfg->slaveMode);
-
-	timx_ch_cfg_t *CC_CH;
-	// Cfg cap/compare channels
-	for (uint8_t i = 0; i < TIMX_NUM_CH; i++ )
-	{
-		CC_CH = &pCfg->chCfg[i];
-		// Enable TIM2 cap/compare 1 channel
-		// TIM2 TRGO genenerated on TIM2 cmp1 match
-		err |= LL_TIM_CC_IsEnabledChannel(TIM, LL_TIM_CHANNEL_CH1 ) == 1 ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
-	}
-
-
-	return err;
-
-}// init_timx
-
-
 // Init Master Period Reference Timer (TIM2)
 static mujoe_err_t init_tim2( RESDRV_CTX ctx )
 {
@@ -1084,16 +999,12 @@ static mujoe_err_t init_tim2( RESDRV_CTX ctx )
 	// Enable ARR preload
 	// ARR not loaded until update event. All writes to ARR are to shadow register
 	err |= mujoe_gptim_ctrl_arrPreload(GPTIM, true );
-	//LL_TIM_EnableARRPreload(TIM);
 
 	// Set prescaler (PSC)
 	err |= mujoe_gptim_set_prescaler(GPTIM, 0);
-	//LL_TIM_SetPrescaler(TIM,0);
-
 
 	// Set auto-reload (ARR)
 	err |= mujoe_gptim_set_ARR( GPTIM, ctx->rt.start_period );
-	//LL_TIM_SetAutoReload(TIM, ctx->rt.start_period);
 
 	// Cfg TIM2 as Downcounter
 	uint32_t cntr_mode = LL_TIM_COUNTERMODE_DOWN;
@@ -1120,15 +1031,8 @@ static mujoe_err_t init_tim2( RESDRV_CTX ctx )
 		//  Cfg master portion of timer
 		if( IS_TIM_MASTER_INSTANCE(TIM) == 1 )
 		{
-			// LEGACY
-			// Set TRGO trigger: CC1F Flag set (TIM2 CNT= CMP1)
-			//LL_TIM_SetTriggerOutput(TIM, LL_TIM_TRGO_CC1IF);
-
-			// TEST
 			// Set TRGO trigger: CC1F Flag set (TIM2 CNT= CMP1) if lead time specified
 			// ...set trigger to timer reset if NO lead time specified
-// Set TRGO trigger: CC1F Flag set (TIM2 CNT= CMP1) if lead time specified
-			// ...set trigger to timer update if NO lead time specified
 			// NOTE: Do NOT use LL_TIM_TRGO_RESET when lead time is 0, when
 			// in this mode TIM2 TRGO will not be generated on reset/roll-over in the classical
 			// timer sense, but instead only when the timer is itself is reset (therefore a misleading naming convention)
@@ -1188,14 +1092,9 @@ static mujoe_err_t init_tim5( RESDRV_CTX ctx )
 	LL_TIM_OC_SetCompareCH1(TIM, 0);
 #endif // #if RES_DRV_DBG_EN == 1
 
-	// Forces timer to update registers in case preload is enabled
-	//mujoe_gptim_generate_update_event(GPTIM);	//legacy
-
-
 	// Enable auto-reload (ARR) preload.
 	// TIM5_CR1.ARPE = 1
 	err |= mujoe_gptim_ctrl_arrPreload( GPTIM, true );
-	//LL_TIM_EnableARRPreload(TIM);
 
 	// Forces timer to update registers in case preload is enabled
 	mujoe_gptim_generate_update_event(GPTIM);
@@ -1270,10 +1169,10 @@ static mujoe_err_t init_hrtim_timx( RESDRV_CTX ctx, uint32_t timer, hrtim_timx_c
 	// Disable counter
 	LL_HRTIM_TIM_CounterDisable(HRTIM, timer);
 	if( LL_HRTIM_TIM_IsCounterEnabled(HRTIM,timer) == 1 )
+	{
 		return MUJOE_ERR_FAILURE;
+	}
 
-//	if( LL_HRTIM_TIM_IsCounterEnabled(HRTIM,timer) == 1 )
-//		LL_HRTIM_TIM_CounterDisable(HRTIM, timer);
 
 	// Set and confirm prescaler
 	LL_HRTIM_TIM_SetPrescaler(HRTIM, timer, pCfg->pscRatio);
@@ -1405,9 +1304,6 @@ static mujoe_err_t init_hrtim_timx( RESDRV_CTX ctx, uint32_t timer, hrtim_timx_c
 
 	err |= LL_HRTIM_TIM_IsEnabledPreload(HRTIM, timer ) == pCfg->preloadEnabled ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
 
-#if RES_DRV_DBG_EN == 1
-	//mujoe_hrtim_timx_dbg_dump_cfg( HRTIM, timer );
-#endif // #if RES_DRV_DBG_EN == 1
 	return err;
 }// init_hrtim_timx
 
@@ -1436,42 +1332,9 @@ static mujoe_err_t init_master_tim( RESDRV_CTX ctx )
 	return err;
 }// init_master_tim
 
-static mujoe_err_t timer_sync_test_debug( RESDRV_CTX ctx  )
-{
-	mujoe_err_t err = MUJOE_ERR_NONE;
-
-	uint32_t cmp4 = 300;
-	err |= mujoe_hrtim_TIMx_setCompareX(&ctx->hrtim, LL_HRTIM_TIMER_A, 4, cmp4);
-	err |= mujoe_hrtim_TIMx_setCompareX(&ctx->hrtim, LL_HRTIM_TIMER_E, 4, cmp4);
-	err |= mujoe_hrtim_TIMx_setCompareX(&ctx->hrtim, LL_HRTIM_TIMER_F, 4, cmp4);
-
-	err |= mujoe_hrtim_TIMx_controlCompareXInterrupt( &ctx->hrtim,
-			LL_HRTIM_TIMER_A,
-			4,
-			true );
-
-	err |= mujoe_hrtim_TIMx_controlCompareXInterrupt( &ctx->hrtim,
-			LL_HRTIM_TIMER_E,
-			4,
-			true );
-
-	err |= mujoe_hrtim_TIMx_controlCompareXInterrupt( &ctx->hrtim,
-			LL_HRTIM_TIMER_F,
-			4,
-			true );
-
-	err |= mujoe_hrtim_TIMx_cntrl_interrupt( &ctx->hrtim, LL_HRTIM_TIMER_A, true );
-	err |= mujoe_hrtim_TIMx_cntrl_interrupt( &ctx->hrtim, LL_HRTIM_TIMER_E, true );
-	err |= mujoe_hrtim_TIMx_cntrl_interrupt( &ctx->hrtim, LL_HRTIM_TIMER_F, true );
-	return err;
-}// timer_sync_test_debug
-
-
 static mujoe_err_t config_zcd_feedback_blanking( RESDRV_CTX ctx )
 {
 	mujoe_err_t err = MUJOE_ERR_NONE;
-
-	//ctx->rt.start_period = (uint32_t)(HRTIM_TIMx_CLK_FREQ_HZ/((uint32_t)ctx->cfg.startFreq_Hz));
 
 	// Compute the max starting period (min starting frequency) to be tracked (in timer cnt)
 	uint32_t TIME_CMP3 = (uint32_t)((float)ctx->rt.start_period * ( 1.0f + ctx->cfg.startFreq_maxNegDev_percent/100.0f));
@@ -1641,18 +1504,6 @@ static mujoe_err_t init_common( RESDRV_CTX ctx )
 	return err;
 }// init_common
 
-
-/*
-//#define HRTIM_TIMERUPDATE_ALL		HRTIM_TIMERUPDATE_MASTER |\
-//									HRTIM_TIMERUPDATE_A |\
-//									HRTIM_TIMERUPDATE_B |\
-//									HRTIM_TIMERUPDATE_C |\
-//									HRTIM_TIMERUPDATE_D |\
-//									HRTIM_TIMERUPDATE_E |\
-//									HRTIM_TIMERUPDATE_F
-*/
-
-
 static inline mujoe_err_t config_resPerCapDma(RESDRV_CTX ctx)
 {
 	dma_cfg_t cfg =
@@ -1780,7 +1631,7 @@ static mujoe_err_t config_dma(  RESDRV_CTX ctx )
 	}
 #endif // #if TIMB_TIMC_CMP2_DMA_EN==1
 
-	//TODO: Remove config not related to pulse skipping outside of conditional (e.g. burst config etc)
+	// TODO: Remove config not related to pulse skipping outside of conditional (e.g. burst config etc)
 	if(ctx->cfg.enablePulseSkipping )
 	{
 		/////////////////////////////////////////////////////////////////////
@@ -1871,8 +1722,7 @@ static mujoe_err_t config_dma(  RESDRV_CTX ctx )
 					.DMA 				= ctx->dma2.instance,
 					.dmaChannel 		= LL_DMA_CHANNEL_2,
 					.dmaRequestId		= LL_DMAMUX_REQ_HRTIM1_B,		// DMA Request MUX Input: 97 (dec) (hrtim_dma3)
-				    //.SrcAddress 		= (uint32_t)&(output_reset),	// TODO: IMPORTANT!!, figure out why this is a pointer to a pointer
-					.SrcAddress 		= (uint32_t)(output_reset),	// test
+					.SrcAddress 		= (uint32_t)(output_reset),
 					.numRegisters 		= PULSE_SKIP_OUT_RESET_LEN,
 				    .circularModeEn 	= true,
 					.priority 			= LL_DMA_PRIORITY_HIGH,
@@ -1890,8 +1740,7 @@ static mujoe_err_t config_dma(  RESDRV_CTX ctx )
 					.DMA 				= ctx->dma2.instance,
 					.dmaChannel 		= LL_DMA_CHANNEL_3,
 					.dmaRequestId		= LL_DMAMUX_REQ_HRTIM1_D,	// DMA Request MUX Input: 99 (dec) (hrtim_dma5)
-				    //.SrcAddress 		= (uint32_t)&(output_set),  // TODO: IMPORTANT!!, figure out why this is a pointer to a pointer
-					.SrcAddress 		= (uint32_t)(output_set), 	// test
+					.SrcAddress 		= (uint32_t)(output_set),
 					.numRegisters 		= PULSE_SKIP_OUT_SET_LEN,
 				    .circularModeEn 	= true,
 					.priority 			= LL_DMA_PRIORITY_HIGH,
@@ -1956,9 +1805,6 @@ static mujoe_err_t init_hrtim( RESDRV_CTX ctx )
 	// Configure GPIO as it pertains to HRTIM
 	err |= config_gpio(ctx);
 
-	// TODO: Remove timer sync test
-    //err |= timer_sync_test_debug( ctx );
-
 	// Reset all HRTIM timer counters
 	mujoe_hrtim_TIMx_counter_reset_all( &ctx->hrtim );
 
@@ -2016,9 +1862,9 @@ static bool isStateChangeValid( RESDRV_CTX ctx, resdrv_sys_state_t newState )
 ////////////////////////////////////////////////////////////////////////
 
 // If 1, only DMA channels related to pulse skipping are logged
-#define PULSE_SKIP_LOG_ONLY_EN			0//1
+#define PULSE_SKIP_LOG_ONLY_EN			0
 
-volatile int dma2_ch6_invoc_cnt = 0;
+//volatile int dma2_ch6_invoc_cnt = 0;
 
 static inline void handle_finite_cycles( void )
 {
@@ -2042,33 +1888,21 @@ static void dma2TransferComplete_CB(uint8_t dmaCh)
 
 #if PULSE_SKIP_LOG_ONLY_EN == 0
 		case 1:
-#if RES_DRV_DBG_EN == 1
-			//LOG_INFO("DMA2 CH1, req: TIME CAPTURE1 (freq tracking)");
-#endif // #if RES_DRV_DBG_EN == 1
 			break;
 		case 5:
 			break;
 		case 6:
 			// If number of PRF cycle(s) is finite: check if target number of
 			// PRF cycles has been reached
-			dma2_ch6_invoc_cnt++;
+			//dma2_ch6_invoc_cnt++;
 			handle_finite_cycles();
 			break;
 #endif // #if PULSE_SKIP_LOG_ONLY_EN == 0
 		case 2:
-#if RES_DRV_DBG_EN == 1
-			//LOG_INFO("DMA2 CH2, req: TIMB CAPTURE2 (pulse skip)");
-#endif // #if RES_DRV_DBG_EN == 1
 			break;
 		case 3:
-#if RES_DRV_DBG_EN == 1
-			//LOG_INFO("DMA2 CH3, req: TIMD COMPARE1 (pulse skip)");
-#endif // #if RES_DRV_DBG_EN == 1
 			break;
 		case 4:
-#if RES_DRV_DBG_EN == 1
-			//LOG_INFO("DMA2 CH4, req: TIMC CAPTURE2 (pulse skip)");
-#endif // #if RES_DRV_DBG_EN == 1
 			break;
 		default:
 			break;
@@ -2078,23 +1912,11 @@ static void dma2TransferComplete_CB(uint8_t dmaCh)
 
 static void dma2TransferError_CB(uint8_t dmaCh)
 {
+
 #if RES_DRV_DBG_EN == 1
-
 	LOG_ERROR("dma2TransferError_CB:: DMA2 CH%d XFR error!",dmaCh);
-//	switch( dmaCh )
-//	{
-//
-//		case 1:
-//			LOG_ERROR("DMA2 CH 1 transfer error!");
-//			break;
-//		case 6:
-//			LOG_ERROR("DMA2 CH 6 transfer error!");
-//			break;
-//		default:
-//			break;
-//	}
-
 #endif // #if RES_DRV_DBG_EN == 1
+
 }// dma2TransferError_CB
 
 ////////////////////////////////////////////////////////////////////////
