@@ -237,7 +237,6 @@ static void dma1TransferComplete_CB(uint8_t dmaCh)
 	switch( dmaCh )
 	{
 		case 1:
-			//LOG_INFO("DMA1 CH1, req: ADC");
 			break;
 		case 2:
 			break;
@@ -245,7 +244,6 @@ static void dma1TransferComplete_CB(uint8_t dmaCh)
 			break;
 		case 6:
 			notifyTask_usart1RxData();
-			//LOG_INFO("DMA1 CH6, req: USART1 RX");
 			break;
 		case 7:
 		{
@@ -255,7 +253,6 @@ static void dma1TransferComplete_CB(uint8_t dmaCh)
 										 &txPending,
 										 1,
 										 0 );
-			//LOG_INFO("DMA1 CH7, req: USART1 TX");
 			break;
 		}
 		default:

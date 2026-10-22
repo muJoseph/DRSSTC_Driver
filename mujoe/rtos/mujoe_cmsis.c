@@ -207,7 +207,6 @@ mujoe_err_t mujoe_cmsis_createEventTable( MUJOE_CMSIS_CTX ctx, uint8_t numEvents
 	if( numEvents < 32 )
 	{
 		ctx->numEvents = numEvents;
-		//uint32_t evtTblSize = sizeof(mujoe_cmsis_evt_timer_t*)*numEvents;
 
 		// Create event table
 		ctx->ppEvtTable = (mujoe_cmsis_evt_timer_t**)MUJOE_CMSIS_MALLOC(sizeof(mujoe_cmsis_evt_timer_t*)*numEvents);

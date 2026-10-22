@@ -1864,8 +1864,6 @@ static bool isStateChangeValid( RESDRV_CTX ctx, resdrv_sys_state_t newState )
 // If 1, only DMA channels related to pulse skipping are logged
 #define PULSE_SKIP_LOG_ONLY_EN			0
 
-//volatile int dma2_ch6_invoc_cnt = 0;
-
 static inline void handle_finite_cycles( void )
 {
 	if( _ctx->cfg.numBurstCycles )
@@ -1894,7 +1892,6 @@ static void dma2TransferComplete_CB(uint8_t dmaCh)
 		case 6:
 			// If number of PRF cycle(s) is finite: check if target number of
 			// PRF cycles has been reached
-			//dma2_ch6_invoc_cnt++;
 			handle_finite_cycles();
 			break;
 #endif // #if PULSE_SKIP_LOG_ONLY_EN == 0

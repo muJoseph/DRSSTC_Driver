@@ -394,13 +394,19 @@ void mujoe_dma_DMA2_Channel1_IRQHandler(void)
 		LL_DMA_ClearFlag_TC1(DMA2);
 
 		if( pDma2Cbs && pDma2Cbs->transferCompleteCB )
+		{
 			pDma2Cbs->transferCompleteCB(1);
+		}
+
 	}
 	// Check transfer error flag for channel 1
 	else if(LL_DMA_IsActiveFlag_TE1(DMA2) == 1)
 	{
 		if( pDma2Cbs && pDma2Cbs->transferErrorCB )
+		{
 			pDma2Cbs->transferErrorCB(1);
+		}
+
 	}
 
 }// mujoe_dma_DMA2_Channel1_IRQHandler
@@ -413,13 +419,19 @@ void mujoe_dma_DMA2_Channel2_IRQHandler(void)
 		LL_DMA_ClearFlag_TC2(DMA2);
 
 		if( pDma2Cbs && pDma2Cbs->transferCompleteCB )
+		{
 			pDma2Cbs->transferCompleteCB(2);
+		}
+
 	}
 	// Check transfer error flag for channel 2
 	else if(LL_DMA_IsActiveFlag_TE2(DMA2) == 1)
 	{
 		if( pDma2Cbs && pDma2Cbs->transferErrorCB )
+		{
 			pDma2Cbs->transferErrorCB(2);
+		}
+
 	}
 }// mujoe_dma_DMA2_Channel2_IRQHandler
 
@@ -431,13 +443,19 @@ void mujoe_dma_DMA2_Channel3_IRQHandler(void)
 		LL_DMA_ClearFlag_TC3(DMA2);
 
 		if( pDma2Cbs && pDma2Cbs->transferCompleteCB )
+		{
 			pDma2Cbs->transferCompleteCB(3);
+		}
+
 	}
 	// Check transfer error flag for channel 3
 	else if(LL_DMA_IsActiveFlag_TE3(DMA2) == 1)
 	{
 		if( pDma2Cbs && pDma2Cbs->transferErrorCB )
+		{
 			pDma2Cbs->transferErrorCB(3);
+		}
+
 	}
 
 }// mujoe_dma_DMA2_Channel3_IRQHandler
@@ -450,13 +468,19 @@ void mujoe_dma_DMA2_Channel4_IRQHandler(void)
 		LL_DMA_ClearFlag_TC4(DMA2);
 
 		if( pDma2Cbs && pDma2Cbs->transferCompleteCB )
+		{
 			pDma2Cbs->transferCompleteCB(4);
+		}
+
 	}
 	// Check transfer error flag for channel 4
 	else if(LL_DMA_IsActiveFlag_TE4(DMA2) == 1)
 	{
 		if( pDma2Cbs && pDma2Cbs->transferErrorCB )
+		{
 			pDma2Cbs->transferErrorCB(4);
+		}
+
 	}
 }// mujoe_dma_DMA2_Channel4_IRQHandler
 
@@ -468,13 +492,19 @@ void mujoe_dma_DMA2_Channel5_IRQHandler(void)
 		LL_DMA_ClearFlag_TC5(DMA2);
 
 		if( pDma2Cbs && pDma2Cbs->transferCompleteCB )
+		{
 			pDma2Cbs->transferCompleteCB(5);
+		}
+
 	}
 	// Check transfer error flag for channel 5
 	else if(LL_DMA_IsActiveFlag_TE5(DMA2) == 1)
 	{
 		if( pDma2Cbs && pDma2Cbs->transferErrorCB )
+		{
 			pDma2Cbs->transferErrorCB(5);
+		}
+
 	}
 
 }// mujoe_dma_DMA2_Channel5_IRQHandler
@@ -487,13 +517,19 @@ void mujoe_dma_DMA2_Channel6_IRQHandler(void)
 		LL_DMA_ClearFlag_TC6(DMA2);
 
 		if( pDma2Cbs && pDma2Cbs->transferCompleteCB )
+		{
 			pDma2Cbs->transferCompleteCB(6);
+		}
+
 	}
 	// Check transfer error flag for channel 6
 	else if(LL_DMA_IsActiveFlag_TE6(DMA2) == 1)
 	{
 		if( pDma2Cbs && pDma2Cbs->transferErrorCB )
+		{
 			pDma2Cbs->transferErrorCB(6);
+		}
+
 	}
 }// mujoe_dma_DMA2_Channel6_IRQHandler
 
@@ -506,7 +542,10 @@ void mujoe_dma_DMA1_Channel1_IRQHandler(void)
 		LL_DMA_ClearFlag_TC1(DMA1);
 
 		if( pDma1Cbs && pDma1Cbs->transferCompleteCB )
+		{
 			pDma1Cbs->transferCompleteCB(1);
+		}
+
 	}
 
 	// Check if half transfer flag is set
@@ -519,7 +558,10 @@ void mujoe_dma_DMA1_Channel1_IRQHandler(void)
 	if(LL_DMA_IsActiveFlag_TE1(DMA1) == 1)
 	{
 		if( pDma1Cbs && pDma1Cbs->transferErrorCB )
+		{
 			pDma1Cbs->transferErrorCB(1);
+		}
+
 	}
 
 }// mujoe_dma_DMA1_Channel1_IRQHandler
@@ -533,26 +575,26 @@ void mujoe_dma_DMA1_Channel6_IRQHandler(void)
 		LL_DMA_ClearFlag_TC6(DMA1);
 
 		if( pDma1Cbs && pDma1Cbs->transferCompleteCB )
+		{
 			pDma1Cbs->transferCompleteCB(6);
+		}
 
-		//int dataLeft = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);
-		//LOG_INFO("DMA1 CH6: TC6 intr, num data left: %d",dataLeft);
 	}
 
 	// Check if half transfer flag is set
 	if( LL_DMA_IsActiveFlag_HT6(DMA1) == 1)
 	{
 		LL_DMA_ClearFlag_HT6(DMA1);
-
-		//int dataLeft = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);
-		//LOG_INFO("DMA1 CH6: HT6 intr, num data left: %d",dataLeft);
 	}
 
 	// Check transfer error flag for channel 6
 	if(LL_DMA_IsActiveFlag_TE6(DMA1) == 1)
 	{
 		if( pDma1Cbs && pDma1Cbs->transferErrorCB )
+		{
 			pDma1Cbs->transferErrorCB(6);
+		}
+
 	}
 }// mujoe_dma_DMA1_Channel6_IRQHandler
 
@@ -564,7 +606,10 @@ void mujoe_dma_DMA1_Channel7_IRQHandler(void)
 		LL_DMA_ClearFlag_TC7(DMA1);
 
 		if( pDma1Cbs && pDma1Cbs->transferCompleteCB )
+		{
 			pDma1Cbs->transferCompleteCB(7);
+		}
+
 	}
 
 	// Check if half transfer flag is set
@@ -577,7 +622,10 @@ void mujoe_dma_DMA1_Channel7_IRQHandler(void)
 	if(LL_DMA_IsActiveFlag_TE7(DMA1) == 1)
 	{
 		if( pDma1Cbs && pDma1Cbs->transferErrorCB )
+		{
 			pDma1Cbs->transferErrorCB(7);
+		}
+
 	}
 }// mujoe_dma_DMA1_Channel7_IRQHandler
 
