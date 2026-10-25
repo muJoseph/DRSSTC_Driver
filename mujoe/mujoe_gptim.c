@@ -286,12 +286,6 @@ static mujoe_err_t start_preset0( GPTIM_CTX ctx, uint32_t Channels)
 {
 	mujoe_err_t err = MUJOE_ERR_NONE;
 
-	/* Clear the update flag */
-	//LL_TIM_ClearFlag_UPDATE(ctx->instance);		// TODO: Interrupts are probably not needed
-
-	/* Enable the update interrupt */
-	//LL_TIM_EnableIT_UPDATE(ctx->instance);		// TODO: Interrupts are probably not needed
-
 	/**********************************/
 	/* Start output signal generation */
 	/**********************************/

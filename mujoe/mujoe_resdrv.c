@@ -99,7 +99,7 @@ static const uint32_t OENR_ENABLE_BRIDGE_DRV_OUT = HRTIM_OENR_TB1OEN | HRTIM_OEN
 #define PULSE_SKIP_OUT_SET_LEN		4
 
 
-// TODO: Link these defines to be updated from params mujoe_hrtim_timx_settings.c
+// TODO: Link (make dependent) these to relevant constants in mujoe_hrtim_timx_settings.c
 #define HRTIM_SETB1R_REG_VAL						HRTIM_SET1R_CMP2							// TB1 Output Set Sources
 #define HRTIM_SETB2R_REG_VAL						HRTIM_SET2R_EXTVNT2 | HRTIM_SET2R_EXTVNT6	// TB2 Output Set Sources
 
@@ -883,7 +883,7 @@ mujoe_err_t mujoe_resdrv_start_burst( RESDRV_CTX ctx, mujoe_resdrv_start_burst_a
 #endif// #if RES_DRV_DBG_EN == 1
 
 		// Set TIM5_CCR4
-		// TODO: Currently unused, consider removing
+		// TODO: TIM5 CC4 is used for debug, can be safely removed
 		err |= mujoe_gptim_set_compareX_value( GPTIM5,
 											   4,
 											   tim5_cmp2 );
@@ -903,9 +903,9 @@ mujoe_err_t mujoe_resdrv_start_burst( RESDRV_CTX ctx, mujoe_resdrv_start_burst_a
 		// Force update of TIM5
 		mujoe_gptim_generate_update_event(GPTIM5);
 
-#if RES_DRV_DBG_EN != 1
+#if RES_DRV_DBG_EN == 0
 		// Disable all outputs of TIM2
-		err |= mujoe_gptim_controlAllOutputs( MST_TMR_GPTIM, false);
+		//err |= mujoe_gptim_controlAllOutputs( MST_TMR_GPTIM, false);
 #endif // #if RES_DRV_DBG_EN != 1
 
 		// Re-configure all HRTIM associated DMA channels to ensure clean start
@@ -952,7 +952,6 @@ static mujoe_err_t set_zcdFeedback_timeout( RESDRV_CTX ctx, float timeout_usec)
 	// Subtract 1 period/cycle from requested timeout to allow finishing
 	// current cycle and account for irq entry delay
 	float timeout_adj_usec = timeout_usec - T_start_usec;
-	//float timeout_adj_usec = timeout_usec + T_start_usec;	// TODO: Evaluate if adding period has any affect on performance
 
 	// Get the tick frequency of HRTIM TIM F
 	float timf_freq_hz = mujoe_hrtim_get_tim_freq( &ctx->hrtim, LL_HRTIM_TIMER_F );
@@ -1135,7 +1134,6 @@ static mujoe_err_t config_eev_event(RESDRV_CTX ctx, uint32_t event, eev_event_co
 static mujoe_err_t config_eev_mapping( RESDRV_CTX ctx  )
 {
 	mujoe_err_t err = MUJOE_ERR_NONE;
-	HRTIM_TypeDef *HRTIM = ctx->hrtim.hal_hdl->Instance;
 
 	// Configure EEV 1 throu EEV10 events
 	uint32_t evt = LL_HRTIM_EVENT_1;
@@ -1144,8 +1142,9 @@ static mujoe_err_t config_eev_mapping( RESDRV_CTX ctx  )
 		err |= config_eev_event(ctx, evt << i, (eev_event_config_t *)&eev_event_cfgs[i] );
 	}
 
-
 #if RES_DRV_DBG_EN == 1
+	HRTIM_TypeDef *HRTIM = ctx->hrtim.hal_hdl->Instance;
+
 	// Read sources for each EEV as a sanity check
     uint8_t eevSources[HRTIM_NUM_EEV] = {0};
     evt = LL_HRTIM_EVENT_1;
@@ -1158,7 +1157,6 @@ static mujoe_err_t config_eev_mapping( RESDRV_CTX ctx  )
 	return err;
 
 }// config_eev_mapping
-
 
 static mujoe_err_t init_hrtim_timx( RESDRV_CTX ctx, uint32_t timer, hrtim_timx_cfg_t *pCfg )
 {
@@ -1631,7 +1629,7 @@ static mujoe_err_t config_dma(  RESDRV_CTX ctx )
 	}
 #endif // #if TIMB_TIMC_CMP2_DMA_EN==1
 
-	// TODO: Remove config not related to pulse skipping outside of conditional (e.g. burst config etc)
+	// TODO: config_dma: remove config not related to pulse skipping outside of conditional (e.g., burst config, etc.)
 	if(ctx->cfg.enablePulseSkipping )
 	{
 		/////////////////////////////////////////////////////////////////////
@@ -1932,7 +1930,9 @@ void HRTIM1_TIMA_IRQHandler(void)
     if (LL_HRTIM_IsActiveFlag_CMP4(HRTIM1, LL_HRTIM_TIMER_A))
     {
         LL_HRTIM_ClearFlag_CMP4(HRTIM1, LL_HRTIM_TIMER_A);
+#if RES_DRV_DBG_EN == 1
         tima_cmpcnt++;
+#endif // #if RES_DRV_DBG_EN == 1
     }
 }// HRTIM1_TIMA_IRQHandler
 
@@ -1948,7 +1948,9 @@ void HRTIM1_TIME_IRQHandler(void)
     if (LL_HRTIM_IsActiveFlag_CMP4(HRTIM1, LL_HRTIM_TIMER_E))
     {
         LL_HRTIM_ClearFlag_CMP4(HRTIM1, LL_HRTIM_TIMER_E);
+#if RES_DRV_DBG_EN == 1
         time_cmpcnt++;
+#endif // #if RES_DRV_DBG_EN == 1
     }
 }// HRTIM1_TIME_IRQHandler
 

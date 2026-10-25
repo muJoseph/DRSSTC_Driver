@@ -49,7 +49,7 @@ const eev_event_config_t eev_event_cfgs[HRTIM_NUM_EEV] =
 	},
 
 	// EEV3 : TIM3 TRGO
-	// TODO: EEV3 unused by HRTIM timers, remove
+	// Note: EEV3 unused by HRTIM timers, can be removed safely
 	{
 	  .eventSrc 			= LL_HRTIM_EEV3SRC_TIM3_TRGO,
 	  .polarityHigh 		= true,
@@ -58,7 +58,7 @@ const eev_event_config_t eev_event_cfgs[HRTIM_NUM_EEV] =
 	},
 
 	// EEV4 : COMP1 Output (ZCD CT1 Tap)
-	// TODO: EEV4 unused by HRTIM timers, remove
+	// Note: EEV4 unused by HRTIM timers, can be removed safely
 	{
 	  .eventSrc 			= LL_HRTIM_EEV4SRC_COMP1_OUT,
 	  .polarityHigh 		= true,
@@ -67,7 +67,7 @@ const eev_event_config_t eev_event_cfgs[HRTIM_NUM_EEV] =
 	},
 
 	// EEV5 : COMP3 Output (OCD, falling edge = OCD fault ASSERTED )
-	// TODO: EEV5 unused by HRTIM timers, remove
+	// Note: EEV5 unused by HRTIM timers, can be removed safely
 	{
 	  .eventSrc 			= LL_HRTIM_EEV5SRC_COMP3_OUT,
 	  .polarityHigh 		= true,	// Don't care when sensitivity is edge-detection
@@ -107,8 +107,8 @@ const eev_event_config_t eev_event_cfgs[HRTIM_NUM_EEV] =
 	  .filter 				= LL_HRTIM_EE_FILTER_3,	// fSAMPLING= fHRTIM, N=8 (Ref Manual, pg.1107)
 	},
 
-	// EEV10 : PC5/PC6 (NOTE: Not currently used for anything)
-	// TODO: EEV10 unused by HRTIM timers, remove
+	// EEV10 : PC5/PC6
+	// Note: EEV10 unused by HRTIM timers, can be removed
 	{
 	  .eventSrc 			= LL_HRTIM_EEV10SRC_GPIO,
 	  .polarityHigh 		= true,

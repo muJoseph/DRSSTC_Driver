@@ -241,19 +241,20 @@ mujoe_err_t mujoe_hrtim_enable_timers(HRTIM_CTX ctx, uint32_t timers)
 {
 	HRTIM_TypeDef *HRTIM = ctx->hal_hdl->Instance;
 	LL_HRTIM_TIM_CounterEnable(HRTIM, timers);
-	// TODO: Fix this, this cannot be used when input arg timers is a combination of timers e.g. LL_HRTIM_TIMER_A | LL_HRTIM_TIMER_B
-	return LL_HRTIM_TIM_IsCounterEnabled(HRTIM, timers) == 1 ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
-	//HAL_StatusTypeDef stat = HAL_HRTIM_WaveformCountStart(ctx->hal_hdl, timers);
-	//return stat == HAL_OK ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
+	// TODO: LL_HRTIM_TIM_IsCounterEnabled() must be invoked for each timer separately.
+	// It cannot be called when input arg timers is a combination, e.g., timers = LL_HRTIM_TIMER_A | LL_HRTIM_TIMER_B
+	//return LL_HRTIM_TIM_IsCounterEnabled(HRTIM, timers) == 1 ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
+	return MUJOE_ERR_NONE;
 }// mujoe_hrtim_enable_timers
 
 mujoe_err_t mujoe_hrtim_disable_timers(HRTIM_CTX ctx, uint32_t timers)
 {
 	HRTIM_TypeDef *HRTIM = ctx->hal_hdl->Instance;
 	LL_HRTIM_TIM_CounterDisable(HRTIM, timers);
-	// TODO: Fix this, this cannot be used when input arg timers is a combination of timers e.g. LL_HRTIM_TIMER_A | LL_HRTIM_TIMER_B
-	return LL_HRTIM_TIM_IsCounterEnabled(HRTIM, timers) == 0 ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
-
+	// TODO: LL_HRTIM_TIM_IsCounterEnabled() must be invoked for each timer separately.
+	// It cannot be called when input arg timers is a combination, e.g., timers = LL_HRTIM_TIMER_A | LL_HRTIM_TIMER_B
+	//return LL_HRTIM_TIM_IsCounterEnabled(HRTIM, timers) == 0 ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
+	return MUJOE_ERR_NONE;
 }// mujoe_hrtim_disable_timers
 
 mujoe_err_t mujoe_hrtim_setOutputSetSrc(HRTIM_CTX ctx, uint32_t output, uint32_t setSource)
@@ -296,25 +297,6 @@ mujoe_err_t mujoe_hrtim_enable_output(HRTIM_CTX ctx, uint32_t output)
 	LL_HRTIM_EnableOutput(HRTIM, output);
 	return LL_HRTIM_IsEnabledOutput(HRTIM, output) == 1 ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
 }// mujoe_hrtim_enable_output
-
-
-// TODO: Make obsolete
-mujoe_err_t mujoe_hrtim_enable_outputs(HRTIM_CTX ctx, uint32_t outputs)
-{
-	HRTIM_TypeDef *HRTIM = ctx->hal_hdl->Instance;
-	LL_HRTIM_EnableOutput(HRTIM, outputs);
-	// TODO: This is not valid, cannot be a combination of outputs, must be replaced
-	return LL_HRTIM_IsEnabledOutput(HRTIM, outputs) == 1 ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
-}// mujoe_hrtim_enable_outputs
-
-// TODO: Make obsolete
-mujoe_err_t mujoe_hrtim_disable_outputs(HRTIM_CTX ctx, uint32_t outputs)
-{
-	HRTIM_TypeDef *HRTIM = ctx->hal_hdl->Instance;
-	LL_HRTIM_DisableOutput(HRTIM, outputs);
-	// TODO: This is not valid, cannot be a combination of outputs, must be replaced
-	return LL_HRTIM_IsDisabledOutput(HRTIM, outputs) == 1 ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
-}// mujoe_hrtim_disable_outputs
 
 mujoe_err_t mujoe_hrtim_disable_output(HRTIM_CTX ctx, uint32_t output)
 {

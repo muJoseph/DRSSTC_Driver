@@ -197,7 +197,7 @@ mujoe_err_t mujoe_usart_initHardware( USART_CTX ctx )
 
 	stat |= LL_USART_Init(usart, &USART_InitStruct);
 	err |= stat == SUCCESS ? MUJOE_ERR_NONE : MUJOE_ERR_FAILURE;
-	// TODO: Consider removing calls to FIFO configuraton since we are using DMA
+	// TODO: Consider removing calls to FIFO config since DMA is utilized for TX/RX
 	LL_USART_SetTXFIFOThreshold(usart, ctx->cfg.fifoTxThresh);
 	LL_USART_SetRXFIFOThreshold(usart, ctx->cfg.fifoRxThresh);
 	LL_USART_DisableFIFO(usart);

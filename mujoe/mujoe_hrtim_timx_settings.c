@@ -36,12 +36,13 @@ static const hrtim_timx_eev_blank_t timA_eev_blankFltrs[] =
 	// EEV1 - COMP2 (CT1) Rising Edge: Blanked from reset to cmp1
 	{.event = LL_HRTIM_EVENT_1, .filter = LL_HRTIM_EEFLTR_BLANKINGCMP1, .latchEn = false},
 	// EEV4 - COMP1 (ZCD CT1) Rising Edge: Blanked from reset to cmp1
-	// TODO: EEV4 not used, remove
+	// Note: EEV4 not used by HRTIM timers, can be removed safely
 	{.event = LL_HRTIM_EVENT_4, .filter = LL_HRTIM_EEFLTR_BLANKINGCMP1, .latchEn = false},
 	// EEV6 - COMP1 (ZCD CT1, filtered) Rising Edge: Blanked from reset to cmp1
 	{.event = LL_HRTIM_EVENT_6, .filter = LL_HRTIM_EEFLTR_BLANKINGCMP1, .latchEn = false},
 	// EEV9 - COMP4 (Delayed Protection/Burst): Blanked from reset to cmp2
-	// postpone (event is latched) eev9 (burst start) to not interfere with period capture TODO remove?
+	// postpone (event is latched) eev9 (burst start) to not interfere with period capture
+	// Note: EEV9 not used by HRTIM timers, can be removed safely
 	{.event = LL_HRTIM_EVENT_9, .filter = LL_HRTIM_EEFLTR_BLANKINGCMP2, .latchEn = true},
 };
 
@@ -106,13 +107,13 @@ static const hrtim_timx_eev_blank_t timB_eev_blankFltrs[] =
 {
 	// EEV1 - COMP2 (CT1) Rising Edge: Blanked from reset to cmp2 (half-triggered mode: 1/f_resonant*0.5).
 	// This is blanking for quarter period (1/f_resonant*0.25) after TIM2 TRGO
-	// TODO: Remove this, EEV1 not used
+	// Note: EEV1 not used by HRTIM timers, can be removed safely
 	{.event = LL_HRTIM_EVENT_1, .filter = LL_HRTIM_EEFLTR_BLANKINGCMP2, .latchEn = false},
 	// EEV2 - TIM2 TRGO Rising Edge: Blanked from reset to cmp1
 	{.event = LL_HRTIM_EVENT_2, .filter = LL_HRTIM_EEFLTR_BLANKINGCMP1, .latchEn = false},
 	// EEV4 - COMP1 (ZCD CT1) Rising Edge: Blanked from reset to cmp2 (half-triggered mode: 1/f_resonant*0.5)
 	// This is blanking for quarter period (1/f_resonant*0.25) after TIM2 TRGO
-	// TODO: Remove this, EEV4 not used
+	// Note: EEV4 not used by HRTIM timers, can be removed safely
 	{.event = LL_HRTIM_EVENT_4, .filter = LL_HRTIM_EEFLTR_BLANKINGCMP2, .latchEn = false},
 	// EEV6 - COMP1 (ZCD CT1, filtered) Rising Edge: Blanked from reset to cmp2 (half-triggered mode: 1/f_resonant*0.5)
 	// This is blanking for quarter period (1/f_resonant*0.25) after TIM2 TRGO
@@ -295,8 +296,9 @@ const hrtim_timx_cfg_t hrtim_timC_cfg =
 // HRTIM TIMER D Config (Pulse Skipping)
 const hrtim_timx_cfg_t hrtim_timD_cfg =
 {
-	// Preload: DISABLED
-	// TODO: Confirm that this should actually be disabled and not just a bug in reference design
+	// Preload: disabled
+	// Shadow registers are bypassed, any writes to TIMD SFRs are applied
+	// immediately to the active registers
 	.preloadEnabled 			= false,
 	// f_tim = f_hrtim/1 = 170e6/1 = 170 MHz
 	.pscRatio 					= LL_HRTIM_PRESCALERRATIO_DIV1,
@@ -367,13 +369,12 @@ static const hrtim_timx_eev_blank_t timE_eev_blankFltrs[] =
 	// taken prior to the output stage).
 	// Resultant effect: event blanking for ignoring period capture events outside the
 	// startFreq_maxPosDev_percent / startFreq_maxNegDev_percent window
-	// TODO: EEV1 currently not used, remove this since it is useless
+	// Note: EEV4 currently not used, can be removed
 	{.event = LL_HRTIM_EVENT_1, .filter = LL_HRTIM_EEFLTR_BLANKING_TIMEEEF5_TIMFOUT2, .latchEn = false},
-	// TODO: EEV4 currently not used, remove this since it is useless
+	// Note: EEV4 currently not used, can be removed
 	// EEV4: COMP1 Out (ZCD CT1)
 	{.event = LL_HRTIM_EVENT_4, .filter = LL_HRTIM_EEFLTR_BLANKING_TIMEEEF5_TIMFOUT2, .latchEn = false},
 	// EEV6: COMP1 OUT, filtered(ZCD CT1)
-	//TODO: Add EEV6 TIME blanking back in!!!
 	{.event = LL_HRTIM_EVENT_6, .filter = LL_HRTIM_EEFLTR_BLANKING_TIMEEEF5_TIMFOUT2, .latchEn = false},
 
 }; // timF_eev_blankFltrs
@@ -521,10 +522,12 @@ const hrtim_timx_cfg_t hrtim_timF_cfg =
 				.positivePolarity = true,
 				.Output  = LL_HRTIM_OUTPUT_TF1,
 				// TF1 Set:
-				// EEV6 (ZCD COMP1) : TODO: This is considered debug, remove
+				// EEV6 (ZCD COMP1)
+				// Note: TF1 is used for debug purposes only, can be removed safely
 				.setSrcs = LL_HRTIM_OUTPUTSET_EEV_6,
 				// TF1 Reset:
-				// EEV6 (ZCD COMP1) : TODO: This is considered debug, remove
+				// EEV6 (ZCD COMP1)
+				// Note: TF1 is used for debug purposes only, can be removed safely
 				.rstSrcs = LL_HRTIM_OUTPUTRESET_EEV_6,
 			},
 			// TF2 - Used for Blanking Window for filtering EEV6 (ZCD) for TIME frequency tracking

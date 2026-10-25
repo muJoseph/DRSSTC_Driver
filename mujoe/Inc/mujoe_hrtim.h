@@ -53,10 +53,8 @@ extern mujoe_err_t mujoe_hrtim_enable_timers(HRTIM_CTX ctx, uint32_t timers);
 extern mujoe_err_t mujoe_hrtim_enable_all_timers(HRTIM_CTX ctx );
 extern mujoe_err_t mujoe_hrtim_disable_timers(HRTIM_CTX ctx, uint32_t timers);
 extern mujoe_err_t mujoe_hrtim_disable_all_timers(HRTIM_CTX ctx );
-extern mujoe_err_t mujoe_hrtim_enable_outputs(HRTIM_CTX ctx, uint32_t outputs);
 extern mujoe_err_t mujoe_hrtim_enable_output(HRTIM_CTX ctx, uint32_t output);
 extern mujoe_err_t mujoe_hrtim_controlGateDriverOutputs(HRTIM_CTX ctx, bool enable);
-extern mujoe_err_t mujoe_hrtim_disable_outputs(HRTIM_CTX ctx, uint32_t outputs);
 extern mujoe_err_t mujoe_hrtim_disable_output(HRTIM_CTX ctx, uint32_t output);
 extern mujoe_err_t mujoe_hrtim_setOutputSetSrc(HRTIM_CTX ctx, uint32_t output, uint32_t setSource);
 

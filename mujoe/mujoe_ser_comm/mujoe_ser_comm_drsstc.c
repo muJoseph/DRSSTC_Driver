@@ -260,7 +260,6 @@ static bool startBurstSeqTimed_cmdHdlr( void *pUarg, uint8_t *pCmdArg, int cmdAr
 static bool readResPeriodCaptureBuffer_cmdHdlr( void *pUarg, uint8_t *pCmdArg, int cmdArgLen, mujoe_sc_cmd_rsp_t *pCmdRsp )
 {
 	mujoe_err_t err = MUJOE_ERR_NONE;
-	MUJOE_SC_DRSSTC ctx = (MUJOE_SC_DRSSTC)pUarg;
 	pCmdRsp->cmd_rsp_id = SC_FRAME_ID_CMDRSP_INV_PARAMS;
 	bool issueCmdRsp = true;
 

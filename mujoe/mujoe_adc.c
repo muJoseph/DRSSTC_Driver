@@ -190,7 +190,8 @@ static inline IRQn_Type getIrq( ADC_CTX ctx  )
 	}
 	else
 	{
-		TRAP_MCU();	// TODO: Implement
+		TRAP_MCU();
+		// TODO: Implement support for ADC3
 		return ADC3_IRQn;
 	}
 

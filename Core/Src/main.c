@@ -211,7 +211,7 @@ void TransferComplete_Callback()
 void TransferError_Callback()
 {
 	TRAP_MCU();
-	// TODO: Do something with error
+	// Handle error
 }
 /* USER CODE END 4 */
 

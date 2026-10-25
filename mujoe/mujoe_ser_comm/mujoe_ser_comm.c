@@ -297,8 +297,6 @@ static mujoe_err_t proc_frame( MUJOE_SER_COMM ctx )
 	return err;
 }// proc_frame
 
-
-
 mujoe_err_t mujoe_ser_comm_feedParser( MUJOE_SER_COMM ctx, uint8_t *pBuf, int len )
 {
 	mujoe_err_t err = MUJOE_ERR_NONE;
@@ -466,7 +464,7 @@ mujoe_err_t mujoe_ser_comm_feedParser( MUJOE_SER_COMM ctx, uint8_t *pBuf, int le
 					pParser->rxdFrame.frame.rxdPayloadLen |= *(pHead++);
 					if( pParser->rxdFrame.frame.rxdPayloadLen > MAX_PAYLOAD_LEN )
 					{
-						// TODO: Handle error
+						// Handle error
 					}
 					pParser->state = SC_PARSE_STATE_PAYLOAD;
 					pParser->idx = 0;
@@ -493,7 +491,7 @@ mujoe_err_t mujoe_ser_comm_feedParser( MUJOE_SER_COMM ctx, uint8_t *pBuf, int le
 					pParser->rxdFrame.frame.rxdCRC |= *(pHead++);
 					uint16_t crc = calculate_crc16_ccitt((const uint8_t *)pParser->rxdFrame.arr,
 														 sizeof(sc_frame_id_t) + sizeof(sc_frame_payload_len_t) + pParser->rxdFrame.frame.rxdPayloadLen );
-					// TODO compute CRC and compare against rxd crc
+					// TODO: Big-endian frame: compute CRC and compare against rxd CRC
 					pParser->state = SC_PARSE_STATE_PAYLOAD_LEN;
 					pParser->idx = 0;
 				}

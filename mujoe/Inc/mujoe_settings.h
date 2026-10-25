@@ -114,7 +114,7 @@
 // USART1
 ////////////////////////////////////////////////////////////////////////
 
-// TODO: Make these dependent on TX and RX mujoe_ser_comm frame lengths
+// TODO: Make USART TX/RX buffer sizes dependent on mujoe_ser_comm max frame lengths
 #define USART1_TX_BUFF_LEN								100
 #define USART1_RX_BUFF_LEN								100
 

@@ -88,7 +88,8 @@ static void commTask(void *argument);
 static mujoe_cmsis_t commTask_cmsis;
 static commTaskInitArg_t commTaskInitArg;
 
-static uint8_t *pUsart1RxBuf = NULL;	// TODO: Implement this differently, this is sloppy and unsafe
+// TODO: Implement USART1 RX buffer in a cleaner, safer fashion
+static uint8_t *pUsart1RxBuf = NULL;
 
 ////////////////////////////////////////////////////////////////////////
 // CALLBACKS
@@ -219,7 +220,7 @@ static void notifyTask_usart1RxData( void )
 	// If remaining bytes equals number of bytes requested, the dma
 	// controller has completed and therefore count has rolled over (circular mode)
 	// TODO: This could potentially be dangerous, since a DMA transfer error could
-	// occur and yield similar results. Investigate further and implement more robust solution
+	// occur and yield similar results. Investigate further and implement more robust solution.
 	uint32_t bytesRxd = (bytesRemain == USART1_DMA_RX_LEN) ?
 						USART1_DMA_RX_LEN :
 						USART1_DMA_RX_LEN - bytesRemain;
@@ -338,7 +339,6 @@ static void procQueue_evtHdlr( void* arg )
 					if( !ctx->resPerCapDumpMgr.running )
 					{
 						// Start dump manager
-						// TODO: Remove delay after debug
 						if( mujoe_cmsis_setEvent(ctx->pTaskArg->myCmsisCtx,
 												 COMM_EVT_GET_RES_PER_CAP_BUF,
 												 MUJOE_SC_RES_PER_CAP_BUF_DMP_DELAY_MS ) != MUJOE_ERR_NONE )
@@ -557,7 +557,7 @@ static mujoe_err_t commTask_init( COMMTASK_CTX ctx )
 		err |= mujoe_usart_initHardware( &ctx->usart1Ctx );
 
 
-		// TODO: Implement this in a cleaner and safer manner
+		// TODO: Implement USART1 RX buffer in a cleaner, safer fashion
 		// Copy pointer to USART1 rx buffer so that it can be used within
 		// USART1 and DMA ISRs. This should be thread safe since both ISRs
 		// only READ the buffer to copy its contents into an outgoing RTOS queue message

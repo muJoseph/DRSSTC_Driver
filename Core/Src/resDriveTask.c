@@ -397,9 +397,7 @@ static void bootMgr_bootComplete_CB(void *hostArg, bool success, uint32_t failur
 		mujoe_bsp_ctrl_LED( true );
 
 		// Enable GDT Drivers
-		// TODO: Move GDT driver board enable signal downstream so system
-		// is safed for majority of boot/idle period
-		mujoe_bsp_ctrl_GDT_EN( true );
+		mujoe_bsp_ctrl_GDT_EN( true );	// TODO: Move GDT driver board enable signal downstream so system  is safe'd for the majority of boot/idle period
 
 		if( resDrvTsk_control_buzzer( BUZZER_SEQ_BOOT_SUCCESS ) != MUJOE_ERR_NONE )
 		{
@@ -673,7 +671,8 @@ static void procQueue_evtHdlr( void* arg )
 									}
 									else
 									{
-										// TODO: Replace with assert
+										// TODO: procQueue_evtHdlr: Replace burst sequence stop failure error log
+										// with hard assert
 										LOG_ERROR("procQueue_evtHdlr:: Burst sequence failed to stop!");
 									}
 
@@ -835,8 +834,6 @@ static void numPrfCyclesComplete_evtHdlr( void* arg )
 
 	if( err == MUJOE_ERR_NONE )
 	{
-		// TODO: Remove after debug
-		//comTask_start_resPerCapDump();
 
 #if RES_DRV_DBG_EN == 1
 		LOG_INFO("numPrfCyclesComplete_evtHdlr:: Clean-up success!");
@@ -859,9 +856,8 @@ static void procAdcSample_evtHdlr( void* arg )
 	mujoe_err_t err = MUJOE_ERR_NONE;
 	RESDRIVETASK_CTX ctx = (RESDRIVETASK_CTX)arg;
 
-	uint32_t vdiff_mv = mujoe_adc_codeToVdiff_mv(&ctx->resDrvCtx.adc2, ctx->resDrvCtx.rt.cs_adc_sample );
-
 #ifdef ADC_LOG_INFO_ENABLED
+	uint32_t vdiff_mv = mujoe_adc_codeToVdiff_mv(&ctx->resDrvCtx.adc2, ctx->resDrvCtx.rt.cs_adc_sample );
 	LOG_INFO("procAdcSample_evtHdlr: Current ADC Sample: %d", (int)ctx->resDrvCtx.rt.cs_adc_sample);
 	LOG_INFO("procAdcSample_evtHdlr: Current Vdiff (mV): %d", (int)vdiff_mv);
 #endif // ADC_LOG_INFO_ENABLED
